@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OpenWeather App</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Dynamic background layer controlled by JS (data-bg + data-theme) -->
+  <div class="bg" id="bg" data-bg="clear" data-theme="night" aria-hidden="true"></div>
+
+  <main class="app" id="app" data-theme="night">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="brand">
+        <h1 class="title">Weather App Project ELEC</h1>
+        <p class="subtitle">OpenWeather API</p>
+      </div>
+
+      <div class="top-actions">
+        <button class="btn ghost" id="themeBtn" type="button" aria-label="Toggle theme">
+          Toggle Theme
+        </button>
+      </div>
+    </header>
+
+    <!-- SEARCH -->
+    <section class="search">
+      <div class="searchbox">
+        <input
+          id="cityInput"
+          class="input"
+          type="text"
+          placeholder="Search city (e.g., Manila)"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <div class="dropdown" id="dropdown" hidden></div>
+      </div>
+
+      <button id="searchBtn" class="btn" type="button">Get Weather</button>
+    </section>
+
+    <section class="status" id="status" role="status" aria-live="polite"></section>
+
+    <!-- DASHBOARD GRID (sidebar + hero) -->
+    <section class="dash">
+      <!-- SIDEBAR -->
+      <aside class="side card sidecard" aria-label="Sidebar panel">
+        <div class="side-head">
+          <div class="badge">Status</div>
+          <div class="side-pill" id="sideStatus">
+            <span class="dot"></span>
+            <span class="sideStatusText">—</span>
+          </div>
+        </div>
+
+        <!-- Non-redundant metrics (wind/pressure/visibility/sun) -->
+        <div class="side-grid">
+          <div class="side-metric">
+            <div class="side-k">Wind</div>
+            <div class="side-v">
+              <span class="skeleton sk-line w-120" id="skWindSide"></span>
+              <span class="hide-during-load" id="windValueSide">—</span>
+            </div>
+          </div>
+
+          <div class="side-metric">
+            <div class="side-k">Pressure</div>
+            <div class="side-v">
+              <span class="skeleton sk-line w-120" id="skPressureSide"></span>
+              <span class="hide-during-load" id="pressureValueSide">—</span>
+            </div>
+          </div>
+
+          <div class="side-metric">
+            <div class="side-k">Visibility</div>
+            <div class="side-v">
+              <span class="skeleton sk-line w-120" id="skVisSide"></span>
+              <span class="hide-during-load" id="visValueSide">—</span>
+            </div>
+          </div>
+
+          <div class="side-metric">
+            <div class="side-k">Sun</div>
+            <div class="side-v">
+              <span class="skeleton sk-line w-160" id="skSunSide"></span>
+              <span class="hide-during-load" id="sunValueSide">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="side-divider"></div>
+
+        <div class="side-note">
+          Tip: Use the dropdown suggestions to avoid mismatched city names.
+        </div>
+      </aside>
+
+      <!-- HERO PANEL -->
+      <section class="hero card current" id="currentCard" aria-label="Current weather hero panel">
+        <div class="hero-bg" id="heroBg" aria-hidden="true"></div>
+        <div class="hero-overlay" aria-hidden="true"></div>
+
+        <div class="hero-content">
+          <div class="hero-top">
+            <div class="hero-title">
+              <h2 class="city hero-city">
+                <span class="skeleton sk-line w-240" id="skCity"></span>
+                <span id="cityName" class="hide-during-load">—</span>
+              </h2>
+
+              <p class="meta hero-meta">
+                <span class="skeleton sk-line w-220" id="skMeta"></span>
+                <span id="metaLine" class="hide-during-load">—</span>
+              </p>
+            </div>
+
+            <div class="hero-icon">
+              <div class="iconwrap">
+                <div class="skeleton sk-circle" id="skIcon"></div>
+                <img id="weatherIcon" class="icon hide-during-load" alt="Weather icon" />
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-main">
+            <div class="big hero-big">
+              <div class="temp hero-temp">
+                <span class="skeleton sk-line w-160 h-56" id="skTemp"></span>
+                <span id="tempValue" class="hide-during-load">—</span>
+              </div>
+              <div class="desc hero-desc">
+                <span class="skeleton sk-line w-240" id="skDesc"></span>
+                <span id="weatherDesc" class="hide-during-load">—</span>
+              </div>
+            </div>
+
+            <!-- ONLY HERE (no duplicates): feels + humidity -->
+            <div class="stats hero-stats">
+              <div class="stat">
+                <div class="stat-k">Feels like</div>
+                <div class="stat-v">
+                  <span class="skeleton sk-line w-90" id="skFeels"></span>
+                  <span id="feelsValue" class="hide-during-load">—</span>
+                </div>
+              </div>
+              <div class="stat">
+                <div class="stat-k">Humidity</div>
+                <div class="stat-v">
+                  <span class="skeleton sk-line w-90" id="skHum"></span>
+                  <span id="humidityValue" class="hide-during-load">—</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Forecast strip -->
+          <section class="forecastStrip" aria-label="5-day forecast strip">
+            <div class="forecastHead">
+              <h3 class="section-title">5-Day Forecast</h3>
+            </div>
+
+            <div class="forecast-grid" id="forecastSkeleton">
+              <div class="day"><span class="skeleton sk-line w-60"></span><span class="skeleton sk-square"></span><span class="skeleton sk-line w-70"></span><span class="skeleton sk-line w-90"></span></div>
+              <div class="day"><span class="skeleton sk-line w-60"></span><span class="skeleton sk-square"></span><span class="skeleton sk-line w-70"></span><span class="skeleton sk-line w-90"></span></div>
+              <div class="day"><span class="skeleton sk-line w-60"></span><span class="skeleton sk-square"></span><span class="skeleton sk-line w-70"></span><span class="skeleton sk-line w-90"></span></div>
+              <div class="day"><span class="skeleton sk-line w-60"></span><span class="skeleton sk-square"></span><span class="skeleton sk-line w-70"></span><span class="skeleton sk-line w-90"></span></div>
+              <div class="day"><span class="skeleton sk-line w-60"></span><span class="skeleton sk-square"></span><span class="skeleton sk-line w-70"></span><span class="skeleton sk-line w-90"></span></div>
+            </div>
+
+            <div class="forecast-grid hide-during-load" id="forecastGrid"></div>
+          </section>
+        </div>
+      </section>
+    </section>
+
+    <footer class="footer">
+      <small>Pick from the dropdown for best results. Default city loads on startup.</small>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
